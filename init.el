@@ -46,47 +46,31 @@
 
 ;; --------- FORMATTING STARTS------------------
 (require 'web-beautify) ;; Not necessary if using ELPA package
-(eval-after-load 'js2-mode
-  '(define-key js2-mode-map (kbd "C-c b") 'web-beautify-js))
 
+(eval-after-load 'js2-mode
+		 '(add-hook 'js2-mode-hook
+				 (lambda ()
+						 (add-hook 'before-save-hook 'web-beautify-js-buffer t t))))
 (eval-after-load 'json-mode
-  '(define-key json-mode-map (kbd "C-c b") 'web-beautify-js))
+		'(add-hook 'json-mode-hook
+				(lambda ()
+			     (add-hook 'before-save-hook 'web-beautify-js-buffer t t))))
 
 (eval-after-load 'sgml-mode
-  '(define-key html-mode-map (kbd "C-c b") 'web-beautify-html))
+		'(add-hook 'html-mode-hook
+				(lambda ()
+					(add-hook 'before-save-hook 'web-beautify-html-buffer t t))))
 
 (eval-after-load 'web-mode
-  '(define-key web-mode-map (kbd "C-c b") 'web-beautify-html))
+			'(add-hook 'web-mode-hook
+				(lambda ()
+					(add-hook 'before-save-hook 'web-beautify-html-buffer t t))))
 
 (eval-after-load 'css-mode
-  '(define-key css-mode-map (kbd "C-c b") 'web-beautify-css))
-
-  (eval-after-load 'js2-mode
-    '(add-hook 'js2-mode-hook
-               (lambda ()
-                 (add-hook 'before-save-hook 'web-beautify-js-buffer t t))))
-
-  (eval-after-load 'json-mode
-    '(add-hook 'json-mode-hook
-               (lambda ()
-                 (add-hook 'before-save-hook 'web-beautify-js-buffer t t))))
-
-  (eval-after-load 'sgml-mode
-    '(add-hook 'html-mode-hook
-               (lambda ()
-                 (add-hook 'before-save-hook 'web-beautify-html-buffer t t))))
-
-  (eval-after-load 'web-mode
-    '(add-hook 'web-mode-hook
-               (lambda ()
-                 (add-hook 'before-save-hook 'web-beautify-html-buffer t t))))
-
-
-    '(add-hook 'css-mode-hook
-               (lambda ()
-                 (add-hook 'before-save-hook 'web-beautify-css-buffer t t))))
-  ;; --------- FORMATTING ENDS------------------
-
+				'(add-hook 'css-mode-hook
+					(lambda ()
+						(add-hook 'before-save-hook 'web-beautify-css-buffer t t))))
+;; --------- FORMATTING ENDS------------------
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -97,13 +81,14 @@
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
    ["black" "red3" "ForestGreen" "yellow3" "blue" "magenta3" "DeepSkyBlue" "gray50"])
- '(custom-enabled-themes (quote (wombat)))
+ '(custom-enabled-themes (quote (wilson)))
  '(custom-safe-themes
    (quote
-    ("15348febfa2266c4def59a08ef2846f6032c0797f001d7b9148f30ace0d08bcf" "12b7ed9b0e990f6d41827c343467d2a6c464094cbcc6d0844df32837b50655f9" default)))
+    ("96998f6f11ef9f551b427b8853d947a7857ea5a578c75aa9c4e7c73fe04d10b4" "15348febfa2266c4def59a08ef2846f6032c0797f001d7b9148f30ace0d08bcf" "3cc2385c39257fed66238921602d8104d8fd6266ad88a006d0a4325336f5ee02" "e0d42a58c84161a0744ceab595370cbe290949968ab62273aed6212df0ea94b4" "0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" default)))
  '(fci-rule-color "#f1c40f")
  '(hl-paren-background-colors (quote ("#2492db" "#95a5a6" nil)))
  '(hl-paren-colors (quote ("#ecf0f1" "#ecf0f1" "#c0392b")))
+ '(linum-format " %7i ")
  '(sml/active-background-color "#34495e")
  '(sml/active-foreground-color "#ecf0f1")
  '(sml/inactive-background-color "#dfe4ea")
@@ -129,4 +114,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(default ((t (:background nil)))))
+(defun fontify-frame (frame)
+	(set-frame-parameter frame 'font "Consolas-24"))
+;; Fontify current frame
+(fontify-frame nil)
+;; Fontify any future frames
+(push 'fontify-frame after-make-frame-functions)
