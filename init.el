@@ -1,122 +1,203 @@
-(require 'package)
-(add-to-list 'package-archives
-    '("melpa" . "https://melpa.org/packages/") t)
-(when (< emacs-major-version 24)
-  ;; For important compatibility libraries like cl-lib
-  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")))
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(setq user-full-name "mathew tony")
+(setq user-mail-address "mathew.tony.t@gmail.com")
+
+;;; getting environment values
+(setenv "PATH" (concat "/usr/local/bin:/opt/local/bin:/usr/bin:/bin" (getenv "PATH")))
+(require 'cl)
+
+;;; define the packages
+(load "package")
 (package-initialize)
+(add-to-list 'package-archives
+						              '("marmalade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives
+						              '("melpa" . "http://melpa.milkbox.net/packages/") t)
 
-(defun setup-tide-mode ()
-  (interactive)
-  (tide-setup)
-  (auto-complete-mode)
-  (flycheck-mode +1)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (eldoc-mode +1)
-  (projectile-global-mode)
-  ;; company is an optional dependency. You have to
-  ;; install it separately via package-install
-  (company-mode +1))
+(setq package-archive-enable-alist '(("melpa" deft magit)))
 
-  (defun setup-js-mode ()
-    (interactive)
-    (projectile-global-mode)
-    (yas-global-mode)
-    (flymake-mode)
-    (flycheck-mode +1)
-    (setq flycheck-check-syntax-automatically '(save mode-enabled))
-    (recentf-mode)
-    (auto-complete-mode)
-    (eldoc-mode +1))
 
-;; aligns annotation to the right hand side
-(setq company-tooltip-align-annotations t)
+;;; default packages
+(defvar mtony/packages '(ac-slime
+                          auto-complete
+                          autopair
+                          deft
+                          feature-mode
+                          flycheck
+                          js2-mode
+                          gist
+                          htmlize
+                          magit
+                          markdown-mode
+                          marmalade
+                          nodejs-repl
+                          o-blog
+                          org
+                          paredit
+                          restclient
+                          rvm
+                          scala-mode
+                          smex
+                          web-mode
+                          writegood-mode
+                          yaml-mode)
+ "Default packages")
 
-;; formats the buffer before saving
-(add-hook 'before-save-hook 'tide-format-before-save)
+(defun mtony/packages-installed-p ()
+	  (loop for pkg in mtony/packages
+					        when (not (package-installed-p pkg)) do (return nil)
+									        finally (return t)))
 
-;; format options
-(setq tide-format-options '(:insertSpaceAfterFunctionKeywordForAnonymousFunctions t :placeOpenBraceOnNewLineForFunctions nil))
-;; see https://github.com/Microsoft/TypeScript/blob/cc58e2d7eb144f0b2ff89e6a6685fb4deaa24fde/src/server/protocol.d.ts#L421-473 for the full list available options
+(unless (mtony/packages-installed-p)
+	  (message "%s" "Refreshing package database...")
+		  (package-refresh-contents)
+			  (dolist (pkg mtony/packages)
+					    (when (not (package-installed-p pkg))
+								      (package-install pkg))))
 
-(add-hook 'typescript-mode-hook #'setup-tide-mode)
-(add-hook 'js2-mode-hook #'setup-js-mode)
-(setq js2-highlight-level 3)
 
-;; --------- FORMATTING STARTS------------------
-(require 'web-beautify) ;; Not necessary if using ELPA package
+(setq inhibit-splash-screen t
+			      initial-scratch-message nil
+						      initial-major-mode 'org-mode)
 
-(eval-after-load 'js2-mode
-		 '(add-hook 'js2-mode-hook
-				 (lambda ()
-						 (add-hook 'before-save-hook 'web-beautify-js-buffer t t))))
-(eval-after-load 'json-mode
-		'(add-hook 'json-mode-hook
-				(lambda ()
-			     (add-hook 'before-save-hook 'web-beautify-js-buffer t t))))
+(tool-bar-mode -1)
+(menu-bar-mode -1)
 
-(eval-after-load 'sgml-mode
-		'(add-hook 'html-mode-hook
-				(lambda ()
-					(add-hook 'before-save-hook 'web-beautify-html-buffer t t))))
 
-(eval-after-load 'web-mode
-			'(add-hook 'web-mode-hook
-				(lambda ()
-					(add-hook 'before-save-hook 'web-beautify-html-buffer t t))))
+(setq-default indicate-empty-lines t)
+(when (not indicate-empty-lines)
+	  (toggle-indicate-empty-lines))
 
-(eval-after-load 'css-mode
-				'(add-hook 'css-mode-hook
-					(lambda ()
-						(add-hook 'before-save-hook 'web-beautify-css-buffer t t))))
-;; --------- FORMATTING ENDS------------------
+(setq tab-width 2
+			      indent-tabs-mode nil)
+
+
+;; FONT setting
+
+(setq make-backup-files nil)
+
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+(global-set-key (kbd "RET") 'newline-and-indent)
+(global-set-key (kbd "C-;") 'comment-or-uncomment-region)
+(global-set-key (kbd "M-/") 'hippie-expand)
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-c C-k") 'compile)
+(global-set-key (kbd "C-x g") 'magit-status)
+
+
+(setq org-agenda-show-log t
+			      org-agenda-todo-ignore-scheduled t
+						      org-agenda-todo-ignore-deadlines t)
+
+(setq org-agenda-files (list "~/extra-matt/org-emacs/personal.org"
+													 "~/extra-matt/org-emacs/groupon.org"))
+
+
+(setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
+(smex-initialize)
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+
+(ido-mode t)
+(setq ido-enable-flex-matching t
+			      ido-use-virtual-buffers t)
+
+(setq column-number-mode t)
+
+(setq backup-directory-alist `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
+
+(require 'autopair)
+
+(require 'auto-complete-config)
+(ac-config-default)
+
+(defun untabify-buffer ()
+	  (interactive)
+		  (untabify (point-min) (point-max)))
+
+(defun indent-buffer ()
+	  (interactive)
+		  (indent-region (point-min) (point-max)))
+
+(defun cleanup-buffer ()
+	  "Perform a bunch of operations on the whitespace content of a buffer."
+		  (interactive)
+			  (indent-buffer)
+				  (untabify-buffer)
+					  (delete-trailing-whitespace))
+
+(defun cleanup-region (beg end)
+	  "Remove tmux artifacts from region."
+		  (interactive "r")
+			  (dolist (re '("\\\\│\·*\n" "\W*│\·*"))
+					    (replace-regexp re "" nil beg end)))
+
+(global-set-key (kbd "C-x M-t") 'cleanup-region)
+(global-set-key (kbd "C-c n") 'cleanup-buffer)
+
+(setq-default show-trailing-whitespace t)
+
+(setq flyspell-issue-welcome-flag nil)
+(if (eq system-type 'darwin)
+	    (setq-default ispell-program-name "/usr/local/bin/aspell")
+			  (setq-default ispell-program-name "/usr/bin/aspell"))
+(setq-default ispell-list-command "list")
+
+(add-to-list 'auto-mode-alist '("\\.zsh$" . shell-script-mode))
+(add-to-list 'auto-mode-alist '("\\.gitconfig$" . conf-mode))
+(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
+
+(defun js-custom ()
+	  "js-mode-hook"
+		  (setq js-indent-level 2))
+
+(add-hook 'js-mode-hook 'js-custom)
+
+(add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.mdown$" . markdown-mode))
+(add-hook 'markdown-mode-hook
+					          (lambda ()
+											            (visual-line-mode t)
+																	            (writegood-mode t)
+																							            (flyspell-mode t)))
+(setq markdown-command "pandoc --smart -f markdown -t html")
+
+
+(if window-system
+	    (load-theme 'tango-plus t)
+			  (load-theme 'flatui t))
+
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+	  (toggle-read-only)
+		  (ansi-color-apply-on-region (point-min) (point-max))
+			  (toggle-read-only))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
  '(ansi-color-names-vector
-   ["black" "red3" "ForestGreen" "yellow3" "blue" "magenta3" "DeepSkyBlue" "gray50"])
- '(custom-enabled-themes (quote (wilson)))
+   ["#2e3436" "#a40000" "#4e9a06" "#c4a000" "#204a87" "#5c3566" "#729fcf" "#eeeeec"])
  '(custom-safe-themes
    (quote
-    ("96998f6f11ef9f551b427b8853d947a7857ea5a578c75aa9c4e7c73fe04d10b4" "15348febfa2266c4def59a08ef2846f6032c0797f001d7b9148f30ace0d08bcf" "3cc2385c39257fed66238921602d8104d8fd6266ad88a006d0a4325336f5ee02" "e0d42a58c84161a0744ceab595370cbe290949968ab62273aed6212df0ea94b4" "0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" default)))
- '(fci-rule-color "#f1c40f")
- '(hl-paren-background-colors (quote ("#2492db" "#95a5a6" nil)))
- '(hl-paren-colors (quote ("#ecf0f1" "#ecf0f1" "#c0392b")))
- '(linum-format " %7i ")
- '(sml/active-background-color "#34495e")
- '(sml/active-foreground-color "#ecf0f1")
- '(sml/inactive-background-color "#dfe4ea")
- '(sml/inactive-foreground-color "#34495e")
- '(vc-annotate-background "#ecf0f1")
- '(vc-annotate-color-map
+    ("80ceeb45ccb797fe510980900eda334c777f05ee3181cb7e19cd6bb6fc7fda7c" default)))
+ '(package-selected-packages
    (quote
-    ((30 . "#e74c3c")
-     (60 . "#c0392b")
-     (90 . "#e67e22")
-     (120 . "#d35400")
-     (150 . "#f1c40f")
-     (180 . "#d98c10")
-     (210 . "#2ecc71")
-     (240 . "#27ae60")
-     (270 . "#1abc9c")
-     (300 . "#16a085")
-     (330 . "#2492db")
-     (360 . "#0a74b9"))))
- '(vc-annotate-very-old-color "#0a74b9"))
+    (tango-plus-theme yasnippet yaml-mode writegood-mode web-mode web-beautify tss tide sublime-themes solarized-theme smex scala-mode rvm restclient projectile project-explorer paredit o-blog nodejs-repl neotree minimap meacupla-theme marmalade markdown-mode magit js3-mode htmlize gist flatui-theme feature-mode deft autopair atom-one-dark-theme ac-slime ac-js2))))
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:background nil)))))
-(defun fontify-frame (frame)
-	(set-frame-parameter frame 'font "Consolas-24"))
+;; custom-set-faces was added by Custom.
+;; If you edit it by hand, you could mess it up, so be careful.
+;; Your init file should contain only one such instance.
+;; If there is more than one, they won't work right.
+)(defun fontify-frame (frame)
+(set-frame-parameter frame 'font "Consolas-24"))
 ;; Fontify current frame
 (fontify-frame nil)
 ;; Fontify any future frames
